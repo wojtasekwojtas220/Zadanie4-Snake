@@ -21,27 +21,16 @@ class Snake
 
         Random randomnummer = new Random();
 
-        pixel hoofd = new pixel();
-
-        hoofd.xpos = screenwidth / 2;
-
-        hoofd.ypos = screenheight / 2;
-
-        hoofd.schermkleur = ConsoleColor.Red;
+        Pixel hoofd = new Pixel();
+        hoofd.xPos = screenwidth / 2;
+        hoofd.yPos = screenheight / 2;
+        hoofd.schermKleur = ConsoleColor.Red;
 
         string movement = "RIGHT";
 
         List<int> telje = new List<int>();
 
         int score = 0;
-
-        Pixel hoofd = new Pixel();
-
-        hoofd.xPos = screenwidth / 2;
-
-        hoofd.yPos = screenheight / 2;
-
-        hoofd.schermKleur = ConsoleColor.Red;
 
 
 
@@ -129,9 +118,10 @@ class Snake
 
             }
 
-            Console.ForegroundColor =  /* ?? */;
+            Console.ForegroundColor = ConsoleColor.Yellow;
 
             Console.WriteLine("Score: " + score);
+            Console.SetCursorPosition(1, screenheight);
 
             Console.ForegroundColor = ConsoleColor.White;
 
@@ -185,7 +175,7 @@ class Snake
 
                     movement = "DOWN";
 
-                // ???
+                    break;
 
                 case ConsoleKey.LeftArrow:
 
@@ -219,7 +209,7 @@ class Snake
 
             //Hindernis treffen
 
-            if (hoofd.xPos == obstacleXpos /* ?? */ == obstacleYpos)
+            if (hoofd.xPos == obstacleXpos && hoofd.yPos == obstacleYpos)
 
             {
 
