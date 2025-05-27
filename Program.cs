@@ -73,7 +73,7 @@ class Program
 
             // Draw score
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.SetCursorPosition(1, screenHeight - 2);
+            Console.SetCursorPosition(0,0);
             Console.Write($"Score: {score}");
 
             // Handle input
@@ -156,17 +156,40 @@ class Program
     }
 
     static void ShowGameOver(int score)
+{
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Red;
+
+    int screenWidth = Console.WindowWidth;
+    int screenHeight = Console.WindowHeight;
+
+    Console.SetCursorPosition(screenWidth / 5, screenHeight / 2);
+    Console.WriteLine("GAME OVER");
+    Console.SetCursorPosition(screenWidth / 5, screenHeight / 2 + 1);
+    Console.WriteLine("Twój wynik: " + score);
+    Console.SetCursorPosition(screenWidth / 5, screenHeight / 2 + 2);
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("ENTER - zagraj ponownie");
+    Console.SetCursorPosition(screenWidth / 5, screenHeight / 2 + 3);
+    Console.WriteLine("ESC - zakończ grę");
+
+    Console.ResetColor();
+
+    while (true)
     {
-        Console.Clear();
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.SetCursorPosition(10, 6);
-        Console.WriteLine("GAME OVER");
-        Console.WriteLine("Następnym razem uważaj na ściany...");
-        Console.SetCursorPosition(9, 8);
-        Console.WriteLine("Wynik: " + score);
-        Console.SetCursorPosition(5, 10);
-        Console.WriteLine("Naciśnij dowolny klawisz, aby wyjść...");
-        Console.ReadKey(true);
-        Environment.Exit(0);
+        var key = Console.ReadKey(true).Key;
+
+        if (key == ConsoleKey.Enter)
+        {
+            Console.Clear();
+            Main(); // Restartuje grę
+            return;
+        }
+        else if (key == ConsoleKey.Escape)
+        {
+            Environment.Exit(0);
+        }
     }
+}
+
 }
