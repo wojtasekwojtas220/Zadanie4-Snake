@@ -356,10 +356,4 @@ class Program
             if (key == ConsoleKey.Escape) Environment.Exit(0);
         }
     }
-
-    class Pixel
-    {
-        public int xPos, yPos;
-        public ConsoleColor schermKleur;
-    }
 }
