@@ -47,12 +47,12 @@ class Program
             Console.WriteLine(@"
    _____             _        
   / ____|           | |       
- | (___   ___   __ _| | _____ 
-  \___ \ / _ \ / _` | |/ / _ \
-  ____) | (_) | (_| |   <  __/
- |_____/ \___/ \__, |_|\_\___|
-                 __/ |        
-                |___/         
+ | (___  _____   ___| | _____ 
+  \___ \/  _  \ /_` | |/ / _ \
+  ____) | | | | (_| |   <  __/
+ |_____/|_| |_| \__,|_|\_\___|
+                        
+                         
 ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\nWybierz tryb gry:\n");
