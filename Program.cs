@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading;
+using static System.Formats.Asn1.AsnWriter;
 
 class Program
 {
@@ -111,6 +113,7 @@ class Program
         Console.SetWindowSize(screenWidth, screenHeight);
         Console.SetBufferSize(screenWidth, screenHeight);
         Console.CursorVisible = false;
+        ShowCountDown();
 
         Pixel head = new Pixel { xPos = screenWidth / 2, yPos = screenHeight / 2, schermKleur = ConsoleColor.Red };
         List<int> body = new List<int>();
@@ -179,12 +182,12 @@ class Program
             head = Move(head, movement);
 
             if (WallHit(head, screenWidth, screenHeight))
-                ShowGameOver(score);
+                ShowGameOver(score, "1P");
 
             for (int i = 0; i < body.Count; i += 2)
             {
                 if (head.xPos == body[i] && head.yPos == body[i + 1])
-                    ShowGameOver(score);
+                    ShowGameOver(score, "1P");
             }
 
             if (head.xPos == obstacleX && head.yPos == obstacleY)
@@ -210,6 +213,7 @@ class Program
         Console.SetWindowSize(screenWidth, screenHeight);
         Console.SetBufferSize(screenWidth, screenHeight);
         Console.CursorVisible = false;
+        ShowCountDown();
 
         Pixel p1 = new Pixel { xPos = 10, yPos = 10, schermKleur = ConsoleColor.Red };
         Pixel p2 = new Pixel { xPos = 30, yPos = 10, schermKleur = ConsoleColor.Blue };
@@ -241,7 +245,8 @@ class Program
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.SetCursorPosition(0, 0);
-            Console.Write($"P1: {s1}  P2: {s2}");
+            if (coop == true) Console.Write($"Score: {s1}");
+            else if (coop == false) Console.Write($"P1: {s1}  P2: {s2}");
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.SetCursorPosition(obstacleX, obstacleY);
@@ -292,7 +297,7 @@ class Program
             p1 = Move(p1, m1); p2 = Move(p2, m2);
 
             if (!coop && (p1.xPos == p2.xPos && p1.yPos == p2.yPos))
-                ShowGameOver(0, twoPlayer: true);
+                ShowGameOver(0, "2P_VS");
 
             if (p1.xPos == obstacleX && p1.yPos == obstacleY)
             {
@@ -302,12 +307,16 @@ class Program
 
             if (p2.xPos == obstacleX && p2.yPos == obstacleY)
             {
-                s2++; if (coop) s1++; obstacleX = rnd.Next(1, screenWidth - 2); obstacleY = rnd.Next(2, screenHeight - 2);
+                s2++;
+                if (coop) s1++; obstacleX = rnd.Next(1, screenWidth - 2); obstacleY = rnd.Next(2, screenHeight - 2);
             }
             else if (b2.Count > 2) { b2.RemoveAt(b2.Count - 1); b2.RemoveAt(b2.Count - 1); }
 
             if (WallHit(p1, screenWidth, screenHeight) || WallHit(p2, screenWidth, screenHeight))
-                ShowGameOver(coop ? s1 : s1 + s2, twoPlayer: true);
+            {
+                if (coop) ShowGameOver(s1, "2P_COMP");
+                else ShowGameOver(s1, "2P_VS", s2);
+            }
 
             Thread.Sleep(100);
         }
@@ -328,7 +337,7 @@ class Program
         };
     }
 
-    static void ShowGameOver(int score, bool twoPlayer = false)
+    static void ShowGameOver(int score, string mode, int scoreP2 = -1)
     {
         FullClear();
         Console.ForegroundColor = ConsoleColor.Red;
@@ -339,7 +348,18 @@ class Program
         Console.WriteLine("GAME OVER");
 
         Console.SetCursorPosition(w / 5, h / 2);
-        Console.WriteLine(twoPlayer ? "Koniec gry!" : $"Twój wynik: {score}");
+        if (mode == "1P")
+            Console.WriteLine($"Twój wynik: {score}");
+        else if (mode == "2P_COMP")
+        {
+            Console.WriteLine($"Wynik wspólny: {score}");
+        }
+        else if (mode == "2P_VS")
+        {
+            Console.WriteLine($"Gracz 1: {score}     Gracz 2: {scoreP2}");
+        }
+        
+
 
         Console.SetCursorPosition(w / 5, h / 2 + 1);
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -352,8 +372,40 @@ class Program
         while (true)
         {
             var key = Console.ReadKey(true).Key;
-            if (key == ConsoleKey.Enter) return;
+            if (key == ConsoleKey.Enter)
+            {
+                FullClear();
+                if (mode == "1P")
+                {
+                    PlaySinglePlayer();
+                }
+                else if (mode == "2P_COMP")
+                {
+                    PlayTwoPlayer(coop: true);
+                }
+                else if (mode == "2P_VS")
+                {
+                    PlayTwoPlayer(coop:  false);
+                }
+            }
             if (key == ConsoleKey.Escape) Environment.Exit(0);
         }
+    }
+
+    static void ShowCountDown()
+    {
+        for (int i = 3; i > 0; i--)
+        {
+            FullClear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.SetCursorPosition(Console.WindowWidth / 2 - 1, Console.WindowHeight / 2);
+            Console.WriteLine(i);
+            Thread.Sleep(1000);
+        }
+
+        FullClear();
+        Console.SetCursorPosition(Console.WindowWidth / 2 - 3, Console.WindowHeight / 2);
+        Console.WriteLine("Start");
+        Thread.Sleep(1000);
     }
 }
