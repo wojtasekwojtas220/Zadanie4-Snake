@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -221,7 +221,13 @@ class Program
         string m1 = "RIGHT", m2 = "LEFT";
         int s1 = 0, s2 = 0;
         Random rnd = new Random();
-        int obstacleX = rnd.Next(1, screenWidth - 2), obstacleY = rnd.Next(2, screenHeight - 2);
+
+        List<(int x, int y)> obstacles = new();
+        int obstacleCount = coop ? 3 : 1;
+        for (int i = 0; i < obstacleCount; i++)
+        {
+            obstacles.Add((rnd.Next(1, screenWidth - 2), rnd.Next(2, screenHeight - 2)));
+        }
 
         while (true)
         {
@@ -249,8 +255,11 @@ class Program
             else if (coop == false) Console.Write($"P1: {s1}  P2: {s2}");
 
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.SetCursorPosition(obstacleX, obstacleY);
-            Console.Write("*");
+            foreach (var ob in obstacles)
+            {
+                Console.SetCursorPosition(ob.x, ob.y);
+                Console.Write("*");
+            }
 
             foreach (var b in new[] { (b1, ConsoleColor.Green), (b2, ConsoleColor.DarkCyan) })
             {
@@ -299,18 +308,35 @@ class Program
             if (!coop && (p1.xPos == p2.xPos && p1.yPos == p2.yPos))
                 ShowGameOver(0, "2P_VS");
 
-            if (p1.xPos == obstacleX && p1.yPos == obstacleY)
+            bool collected = false;
+            for (int i = obstacles.Count - 1; i >= 0; i--)
             {
-                s1++; obstacleX = rnd.Next(1, screenWidth - 2); obstacleY = rnd.Next(2, screenHeight - 2);
+                var ob = obstacles[i];
+                if (p1.xPos == ob.x && p1.yPos == ob.y)
+                {
+                    s1++;
+                    collected = true;
+                    obstacles.RemoveAt(i);
+                }
+                else if (p2.xPos == ob.x && p2.yPos == ob.y)
+                {
+                    s2++;
+                    if (coop) s1++;
+                    collected = true;
+                    obstacles.RemoveAt(i);
+                }
             }
-            else if (b1.Count > 2) { b1.RemoveAt(b1.Count - 1); b1.RemoveAt(b1.Count - 1); }
 
-            if (p2.xPos == obstacleX && p2.yPos == obstacleY)
+            if (collected)
             {
-                s2++;
-                if (coop) s1++; obstacleX = rnd.Next(1, screenWidth - 2); obstacleY = rnd.Next(2, screenHeight - 2);
+                while (obstacles.Count < (coop ? 3 : 1))
+                {
+                    obstacles.Add((rnd.Next(1, screenWidth - 2), rnd.Next(2, screenHeight - 2)));
+                }
             }
-            else if (b2.Count > 2) { b2.RemoveAt(b2.Count - 1); b2.RemoveAt(b2.Count - 1); }
+
+            if (b1.Count > 2) { b1.RemoveAt(b1.Count - 1); b1.RemoveAt(b1.Count - 1); }
+            if (b2.Count > 2) { b2.RemoveAt(b2.Count - 1); b2.RemoveAt(b2.Count - 1); }
 
             if (WallHit(p1, screenWidth, screenHeight) || WallHit(p2, screenWidth, screenHeight))
             {
