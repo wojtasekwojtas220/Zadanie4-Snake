@@ -113,6 +113,12 @@ class Program
         Console.SetWindowSize(screenWidth, screenHeight);
         Console.SetBufferSize(screenWidth, screenHeight);
         Console.CursorVisible = false;
+        Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Wpisz swoje imię:");
+        Console.ForegroundColor = ConsoleColor.White;
+        string playerName = Console.ReadLine()?.Trim();
+        if (string.IsNullOrWhiteSpace(playerName)) playerName = "Gracz";
         ShowCountDown();
 
         Pixel head = new Pixel { xPos = screenWidth / 2, yPos = screenHeight / 2, schermKleur = ConsoleColor.Red };
@@ -182,12 +188,12 @@ class Program
             head = Move(head, movement);
 
             if (WallHit(head, screenWidth, screenHeight))
-                ShowGameOver(score, "1P");
+                ShowGameOver(score, "1P", -1, playerName);
 
             for (int i = 0; i < body.Count; i += 2)
             {
                 if (head.xPos == body[i] && head.yPos == body[i + 1])
-                    ShowGameOver(score, "1P");
+                    ShowGameOver(score, "1P", -1, playerName);
             }
 
             if (head.xPos == obstacleX && head.yPos == obstacleY)
@@ -363,7 +369,7 @@ class Program
         };
     }
 
-    static void ShowGameOver(int score, string mode, int scoreP2 = -1)
+    static void ShowGameOver(int score, string mode, int scoreP2 = -1, string playerName = "", bool alreadySaved = false)
     {
         FullClear();
         Console.ForegroundColor = ConsoleColor.Red;
@@ -377,23 +383,28 @@ class Program
         if (mode == "1P")
             Console.WriteLine($"Twój wynik: {score}");
         else if (mode == "2P_COMP")
-        {
             Console.WriteLine($"Wynik wspólny: {score}");
-        }
         else if (mode == "2P_VS")
-        {
             Console.WriteLine($"Gracz 1: {score}     Gracz 2: {scoreP2}");
-        }
-        
-
 
         Console.SetCursorPosition(w / 5, h / 2 + 1);
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("ENTER - zagraj ponownie");
         Console.SetCursorPosition(w / 5, h / 2 + 2);
         Console.WriteLine("ESC - zakończ grę");
+        if (mode == "1P")
+        {
+            Console.SetCursorPosition(w / 5, h / 2 + 3);
+            Console.WriteLine("V - wyniki gracza");
+        }
 
         Console.ResetColor();
+
+        // Zapisz wynik tylko raz
+        if (mode == "1P" && !alreadySaved && !string.IsNullOrWhiteSpace(playerName))
+        {
+            SaveScore(playerName, score);
+        }
 
         while (true)
         {
@@ -401,37 +412,78 @@ class Program
             if (key == ConsoleKey.Enter)
             {
                 FullClear();
-                if (mode == "1P")
-                {
-                    PlaySinglePlayer();
-                }
-                else if (mode == "2P_COMP")
-                {
-                    PlayTwoPlayer(coop: true);
-                }
-                else if (mode == "2P_VS")
-                {
-                    PlayTwoPlayer(coop:  false);
-                }
+                if (mode == "1P") PlaySinglePlayer();
+                else if (mode == "2P_COMP") PlayTwoPlayer(coop: true);
+                else if (mode == "2P_VS") PlayTwoPlayer(coop: false);
             }
-            if (key == ConsoleKey.Escape) Environment.Exit(0);
+            else if (key == ConsoleKey.Escape)
+            {
+                Environment.Exit(0);
+            }
+            else if (key == ConsoleKey.V && mode == "1P")
+            {
+                ShowScores(playerName);
+                ShowGameOver(score, mode, scoreP2, playerName, true); // już zapisano
+                return;
+            }
         }
     }
 
+
     static void ShowCountDown()
-    {
-        for (int i = 3; i > 0; i--)
         {
+            for (int i = 3; i > 0; i--)
+            {
+                FullClear();
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.SetCursorPosition(Console.WindowWidth / 2 - 1, Console.WindowHeight / 2);
+                Console.WriteLine(i);
+                Thread.Sleep(1000);
+            }
+
             FullClear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.SetCursorPosition(Console.WindowWidth / 2 - 1, Console.WindowHeight / 2);
-            Console.WriteLine(i);
+            Console.SetCursorPosition(Console.WindowWidth / 2 - 3, Console.WindowHeight / 2);
+            Console.WriteLine("Start");
             Thread.Sleep(1000);
         }
 
-        FullClear();
-        Console.SetCursorPosition(Console.WindowWidth / 2 - 3, Console.WindowHeight / 2);
-        Console.WriteLine("Start");
-        Thread.Sleep(1000);
+        static void SaveScore(string playerName, int score)
+        {
+            string path = "scores.txt";
+            if (!File.Exists(path))
+            {
+                using (File.Create(path)) { } // Tworzy pusty plik
+            }
+            string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss};{playerName};{score}";
+            File.AppendAllText(path, line + Environment.NewLine);
+        }
+
+        static void ShowScores(string playerName)
+        {
+            FullClear();
+            string path = "scores.txt";
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Wszystkie zapisane wyniki:\n");
+
+            if (File.Exists(path))
+            {
+                var lines = File.ReadAllLines(path);
+                foreach (var line in lines)
+                {
+                    var parts = line.Split(';');
+                    if (parts.Length == 3)
+                    {
+                        Console.WriteLine($"{parts[1]} - {parts[2]} pkt");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Brak zapisanych wyników.");
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("\nENTER - powrót");
+            while (Console.ReadKey(true).Key != ConsoleKey.Enter) { }
+        }
     }
-}
